@@ -183,7 +183,7 @@ function addErrorMessage(err, myDiv) {
     var errHead = $('<h3>').html('Error')
     var divEl = document.getElementById(myDiv)
     var eContainer = divEl.appendChild(document.createElement('div'))
-    eContainer.className = 'error alert alert-error'
+    eContainer.className = 'error alert alert-danger'
     eContainer.id = myDiv + '_errinfo'
     eContainer.appendChild(errHead[0])
     var errText = eContainer.appendChild(document.createElement('pre'))
@@ -314,7 +314,7 @@ function loadEditor(data, status, whatever) {
 function disableAcOpt() {
     $jqTheme('button.ac_opt').each ( function(index, value) {
         value.className = value.className + ' disabled';
-        $jqTheme(value).attr('onclick', 'return false;')
+        $jqTheme(value).attr('onclick', 'return false;');
         $jqTheme(value).attr('data-toggle', 'tooltip');
         if ($jqTheme(value).text() == 'Save') {
             $jqTheme(value).attr('title', 'Register or log in to save your code');
@@ -323,7 +323,9 @@ function disableAcOpt() {
         }
         $jqTheme(value).tooltip( {
             'selector': '',
-            'placement': 'bottom'
+            'delay': { show: 100, hide: 50 },
+            'placement': 'bottom',
+            'animation': true
         });
     });
 }
@@ -496,82 +498,97 @@ function instructorMchoiceModal(data) {
     // data.reslist -- student and their answers
     // data.answerDict  -- answers and count
     // data.correct - correct answer
-    var res = '<table><tr><th>Student</th><th>Answer(s)</th></tr>'
+    var res = '<table><tr><th>Student</th><th>Answer(s)</th></tr>';
     for (var i in data) {
         res += '<tr><td>'+ data[i][0]+'</td><td>'+data[i][1]+'</td></tr>';
     }
-    res += '</table>'
+    res += '</table>';
     return res;
 }
 
-
 function compareModal(data, status, whatever) {
-    var res = '<div class="compare-modal">\n<h2>Distribution of Answers</h2><table>'
-    res += '<tr><th>Answer</th><th>Percent</th></tr>'
-    var datadict = eval(data)[0]
+    var datadict = eval(data)[0];
     var answers = datadict.answerDict;
-    var misc = datadict.misc
-    var theClass = ""
-    var kl = Object.keys(answers).sort()
+    var misc = datadict.misc;
+    var kl = Object.keys(answers).sort();
+
+    var body = '<table>';
+    body += '<tr><th>Answer</th><th>Percent</th></tr>';
+
     for (var k in kl) {
-        if (kl[k] == misc.correct) {
-            theClass = 'correct'
-        } else {
-            theClass = 'incorrect'
-        }
-        res += '<tr><td class="' + theClass + '">' + kl[k] + '</td><td class="' + theClass + '">' 
-            + answers[kl[k]] + '%</td></tr>'
+        body += '<tr><td>' + kl[k] + '</td><td>' + answers[kl[k]] + '%</td></tr>';
     }
-    res += '</table>'
+    body += '</table>';
+
     if (misc['yourpct'] !== 'unavailable') {
-        res += '<p>You have ' + misc['yourpct'] + '% correct for all questions</p>'
+        body += '<br /><p>You have ' + misc['yourpct'] + '% correct for all questions</p>';
     }
 
     if (datadict.reslist !== undefined) {
         res += instructorMchoiceModal(datadict.reslist);
     }
 
+    var html = '<div class="modal fade">' +
+        '  <div class="modal-dialog compare-modal">' +
+        '    <div class="modal-content">' +
+        '      <div class="modal-header">' +
+        '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '        <h4 class="modal-title">Distribution of Answers</h4>' +
+        '      </div>' +
+        '      <div class="modal-body">' +
+                 body +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
 
-    res +='</div>'
-
-
-    $.modal(res)
+    el = $(html);
+    el.modal();
 }
 
 function compareAnswers(div_id) {
-    data = {}
-    data.div_id = div_id
-    data.course = eBookConfig.course
+    data = {};
+    data.div_id = div_id;
+    data.course = eBookConfig.course;
     jQuery.get(eBookConfig.ajaxURL+'getaggregateresults',data, compareModal);
 }
 
 function compareFITB(data, status, whatever) {
-    var res = '<div class="compare-modal">\n<h2>Top Answers</h2><table>'
-    var answers = eval(data)[0]
-    var misc = eval(data)[1]
-    var theClass = ""
+    var answers = eval(data)[0];
+    var misc = eval(data)[1];
+
+    var body = '<table>';
+    body += '<tr><th>Answer</th><th>Count</th></tr>';
 
     for (var row in answers) {
-        theClass = "incorrect"
-        res += '<tr><td class="' + theClass + '">' + answers[row].answer + '</td><td class="' + theClass + '">' 
-            + answers[row].count + ' times</td></tr>'
+        body += '<tr><td>' + answers[row].answer + '</td><td>' + answers[row].count + ' times</td></tr>';
     }
-    res += '</table>'
+    body += '</table>';
     if (misc['yourpct'] !== 'unavailable') {
-        res += '<p>You have ' + misc['yourpct'] + '% correct for all questions</p>'
+        body += '<br /><p>You have ' + misc['yourpct'] + '% correct for all questions</p>';
     }
 
-    res +='</div>'
-
-
-    $.modal(res)
-
+    var html = '<div class="modal fade">' +
+               '  <div class="modal-dialog compare-modal">' +
+               '    <div class="modal-content">' +
+               '      <div class="modal-header">' +
+               '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+               '        <h4 class="modal-title">Top Answers</h4>' +
+               '      </div>' +
+               '      <div class="modal-body">' +
+                        body +
+               '      </div>' +
+               '    </div>' +
+               '  </div>' +
+               '</div>';
+    el = $(html);
+    el.modal();
 }
 
 function compareFITBAnswers(div_id) {
-    data = {}
-    data.div_id = div_id
-    data.course = eBookConfig.course
+    data = {};
+    data.div_id = div_id;
+    data.course = eBookConfig.course;
     jQuery.get(eBookConfig.ajaxURL+'gettop10Answers',data, compareFITB);
 }
 
@@ -583,11 +600,11 @@ document.addEventListener("DOMNodeInserted", function(event) {
             var div = $(event.currentTarget);
             if (div.html()) {
                 if(div.html().indexOf('Fail') === -1 ) {
-                    div.removeClass('alert-error');
+                    div.removeClass('alert-danger');
                     div.addClass('alert alert-success');
                 } else if (div.html().indexOf('Fail') >= 0) {
                     div.removeClass('alert-success');
-                    div.addClass('alert alert-error');
+                    div.addClass('alert alert-danger');
                 }
             }
         });
@@ -600,46 +617,59 @@ function createScratchActivecode() {
 
     // use the URL to assign a divid - each page should have a unique Activecode block id.
     // Remove everything from the URL but the course and page name
-    var divid = document.URL.split('#')[0].split('static')[1].replaceAll('/', '').replace('.html', '');
+    var divid = document.URL.split('#')[0];
+    divid = divid.split('static')[1];
+    divid = divid.split('?')[0];  // remove any query string (e.g ?lastPosition)
+    divid = divid.replaceAll('/', '').replace('.html', '');
 
     // generate the HTML
-    var html = '<div id="'+divid+'" style="display: none;" class="scratch-ac-modal"><br/>' +
-               '  <div id="'+divid+'_code_div" style="display: block">' +
-               '    <textarea cols="50" rows="12" id="'+divid+'_code" class="active_code">\n\n\n\n\n</textarea>' +
+    var html = '<div id="ac_modal_'+divid+'" class="modal fade">' +
+               '  <div class="modal-dialog scratch-ac-modal">' +
+               '    <div class="modal-content">' +
+               '      <div class="modal-header">' +
+               '        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+               '        <h4 class="modal-title">Scratch ActiveCode</h4>' +
+               '      </div> '  +
+               '      <div class="modal-body">' +
+               '        <div id="'+divid+'">' +
+               '          <div id="'+divid+'_code_div" style="display: block">' +
+               '            <textarea cols="50" rows="12" id="'+divid+'_code" class="active_code">\n\n\n\n\n</textarea>' +
+               '          </div>' +
+               '          <p class="ac_caption"><span class="ac_caption_text">Scratch Editor</span> </p>' +
+
+               '          <button class="btn btn-small btn-success" id="'+divid+'_runb" onclick="runit(\''+divid+'\',this, undefined);">Run</button>' +
+
+               '          <div id="cont"></div>' +
+
+               '          <button class="ac_opt btn btn-default btn-small" style="display: inline-block" id="'+divid+'_saveb" onclick="saveEditor(\''+divid+'\');">Save</button>' +
+               '          <button class="ac_opt btn btn-default btn-small" style="display: inline-block" id="'+divid+'_loadb" onclick="requestCode(\''+divid+'\');">Load</button>' +
+
+               '          <div style="text-align: center">' +
+               '            <canvas id="'+divid+'_canvas" class="ac-canvas" height="400" width="400" style="border-style: solid; display: none; text-align: center"></canvas>' +
+               '          </div>' +
+               '          <pre id="'+divid+'_suffix" style="display:none">' +
+               '          </pre>' +
+               '          <pre id="'+divid+'_pre" class="active_out">' +
+               '          </pre>' +
+               '        </div>'+
+               '      </div>'+
+               '    </div>'+
                '  </div>' +
-               '  <p class="ac_caption"><span class="ac_caption_text">Scratch Editor</span> </p>' +
-
-               '  <button class="btn btn-small btn-success" id="'+divid+'_runb" onclick="runit(\''+divid+'\',this, undefined);">Run</button>' +
-
-               '  <div id="cont"></div>' +
-
-               '  <button class="ac_opt btn btn-small" style="display: inline-block" id="'+divid+'_saveb" onclick="saveEditor(\''+divid+'\');">Save</button>' +
-               '  <button class="ac_opt btn btn-small" style="display: inline-block" id="'+divid+'_loadb" onclick="requestCode(\''+divid+'\');">Load</button>' +
-
-               '  <div style="text-align: center">' +
-               '    <canvas id="'+divid+'_canvas" class="ac-canvas" height="400" width="400" style="border-style: solid; display: none; text-align: center"></canvas>' +
-               '  </div>' +
-               '  <pre id="'+divid+'_suffix" style="display:none">' +
-               '  </pre>' +
-               '  <pre id="'+divid+'_pre" class="active_out">' +
-               '  </pre>' +
-
                '</div>';
     el = $(html);
     $('body').append(el);
+
+    el.on('shown.bs.modal', function (){
+        el.find('.CodeMirror').each(function(i, e) {
+            e.CodeMirror.refresh();
+        });
+    });
 }
 
 function showScratchActivecode() {
-    var divid = document.URL.split('#')[0].split('static')[1].replaceAll('/', '').replace('.html', '');
+    var divid = "ac_modal_" + document.URL.split('#')[0].split('static')[1].split('?')[0].replaceAll('/', '').replace('.html', '');
     var div = $("#"+divid);
 
-    div.modal({'containerId':'scratch-ac-modal',
-               'persist':true,
-               'overlayClose':true,
-               'onShow': function(dialog) {
-                    dialog.data.find('.CodeMirror').each(function(i, el) {
-                        el.CodeMirror.refresh();
-                    });
-                }
-              });
+    div.modal();
+
 }
